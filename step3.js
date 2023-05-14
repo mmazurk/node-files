@@ -1,7 +1,7 @@
 const fs = require("fs");
 const axios = require("axios");
 
-// I had to add the callback function in order to 
+// I had to add the callback function in order to
 // deal with the async nature of fs.readFile()
 
 function cat(path, callback) {
@@ -14,7 +14,7 @@ function cat(path, callback) {
   });
 }
 
-// I had to add the callback function in order to 
+// I had to add the callback function in order to
 // deal with the async nature of axios
 
 function webCat(url, callback) {
@@ -37,7 +37,8 @@ for (let arg of process.argv) {
     currentArgIndex = process.argv.indexOf(arg);
     newfileName = process.argv[currentArgIndex + 1];
     readfileOrUrl = process.argv[currentArgIndex + 2];
-    processArg(readfileOrUrl, newfileName)
+
+    processArg(readfileOrUrl, newfileName);
     break;
   }
   if (arg.includes("//")) {
@@ -52,22 +53,34 @@ for (let arg of process.argv) {
 }
 
 function processArg(readfile, newfile) {
-  let text;
   if (readfile.includes("//")) {
-    text = webCat(readfile, (text_content) => {
-      // this is where you write the file
+    webCat(readfile, (text_content) => {
+      // you need to just extract the text
+      let textContent = text_content.data;
+      fs.writeFile(newfile, textContent, (err) => {
+        if (err) {
+          console.error(err);
+        }
+      });
+
+      console.log(
+        `Finished writing ---- ${text_content} ---- to ${newfile} ... `
+      );
     });
   } else {
-    text = cat(readfile, (text_content) => {
-      // this is where you write the file
-      console.log(`I will write ---- ${text_content} ---- to ${newfile} ... `)
+    cat(readfile, (text_content) => {
+      fs.writeFile(newfile, text_content, (err) => {
+        if (err) {
+          console.error(err);
+        }
+      });
+
+      console.log(
+        `Finished writing ---- ${text_content} ---- to ${newfile} ... `
+      );
     });
   }
-
-  // fs.writeFile(newfile, text, err => {
-  //     if(err) {
-  //         console.error(err);
-  //     }
-  // })
 }
 
+// node step3.js --out two.txt one.txt
+// node step3.js --out two.txt http://www.google.com
